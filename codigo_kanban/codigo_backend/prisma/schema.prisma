@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Funnel {
+  id          Int      @id @default(autoincrement())
+  nombre      String
+  descripcion String?
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  stages Stage[]
+  leads  Lead[]
+
+  @@map("funnels")
+}
+
+model Stage {
+  id        Int      @id @default(autoincrement())
+  funnelId  Int
+  nombre    String
+  orden     Int
+  color     String   @default("#6366f1")
+  createdAt DateTime @default(now())
+
+  funnel  Funnel             @relation(fields: [funnelId], references: [id], onDelete: Cascade)
+  leads   Lead[]
+  history LeadStageHistory[]
+
+  @@index([funnelId])
+  @@map("stages")
+}
+
+model Lead {
+  id                 Int       @id @default(autoincrement())
+  nombre             String
+  email              String
+  telefono           String
+  edad               Int
+  tipo_plan          String
+  estado_civil       String
+  hijos              Int       @default(0)
+  ingresos_mensuales Float
+  profesion          String
+  zona_residencia    String
+
+  funnelId Int?
+  stageId  Int?
+  funnel   Funnel?            @relation(fields: [funnelId], references: [id])
+  stage    Stage?             @relation(fields: [stageId], references: [id])
+  history  LeadStageHistory[]
+
+  ai_score           Float?
+  ai_analysis        String?  @db.Text
+  ai_precio_sugerido Decimal? @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([funnelId])
+  @@index([stageId])
+  @@map("leads")
+}
+
+model LeadStageHistory {
+  id          Int       @id @default(autoincrement())
+  leadId      Int
+  stageId     Int
+  stageName   String
+  enteredAt   DateTime  @default(now())
+  exitedAt    DateTime?
+  durationMin Int?
+
+  lead  Lead  @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  stage Stage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([stageId])
+  @@map("lead_stage_history")
+}

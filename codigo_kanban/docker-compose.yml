@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: kanban-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: kanban_leads_insurance
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    volumes:
+      - kanban_db_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./codigo_backend
+      dockerfile: Dockerfile
+    container_name: kanban-backend
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/kanban_leads_insurance
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      PORT: 3001
+      NODE_ENV: production
+    ports:
+      - "3001:3001"
+
+  frontend:
+    image: nginx:alpine
+    container_name: kanban-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+    volumes:
+      - ./codigo_frontend:/usr/share/nginx/html:ro
+
+volumes:
+  kanban_db_data:

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:," />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kanban - Chatwoot</title>
+    <!-- Anti-flash: aplica tema correto ANTES do React carregar -->
+    <style>
+      html { background-color: #121213; color-scheme: dark; }
+    </style>
+    <script>
+      (function() {
+        try {
+          // Prioridade: URL param > localStorage > dark (default)
+          var urlParams = new URLSearchParams(window.location.search);
+          var urlTheme = urlParams.get('theme');
+          var saved = localStorage.getItem('kanbancw-theme');
+          var theme = (urlTheme === 'light' || urlTheme === 'dark') ? urlTheme
+                    : (saved === 'light' || saved === 'dark') ? saved
+                    : 'dark';
+
+          if (theme === 'light') {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.style.colorScheme = 'light';
+            document.documentElement.style.backgroundColor = '#ffffff';
+          } else {
+            document.documentElement.classList.add('dark');
+            document.documentElement.style.colorScheme = 'dark';
+            document.documentElement.style.setProperty('background-color', '#121213', 'important');
+          }
+        } catch(e) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-BJXxQsb6.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CXtuWbYA.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- Config gerado em runtime pelo Nginx -->
+    <script src="/config.js"></script>
+  </body>
+</html>

@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: saludok-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: saludok
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./codigo_backend
+      dockerfile: Dockerfile
+    container_name: saludok-backend
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/saludok?schema=public
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      PORT: 3001
+      NODE_ENV: production
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./codigo_backend/uploads:/app/uploads
+
+volumes:
+  postgres_data:

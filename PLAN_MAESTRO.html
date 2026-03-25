@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Plan Maestro Kanban Pro</title>
+    <style>
+      :root {
+        --bg: #f4f6f8;
+        --paper: #ffffff;
+        --ink: #18212b;
+        --muted: #5d6b79;
+        --line: #d7dee5;
+        --line-strong: #b9c5d1;
+        --accent: #0f766e;
+        --accent-soft: #e6f5f3;
+        --warn: #b45309;
+        --warn-soft: #fff4e5;
+        --high: #b91c1c;
+        --high-soft: #fdeaea;
+        --shadow: 0 18px 40px rgba(24, 33, 43, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+        background:
+          radial-gradient(circle at top left, #eef7f6 0, transparent 28%),
+          linear-gradient(180deg, #f8fafb 0%, var(--bg) 100%);
+        color: var(--ink);
+      }
+
+      .wrap {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 32px;
+      }
+
+      .hero {
+        background: linear-gradient(135deg, #0f172a 0%, #134e4a 100%);
+        color: #fff;
+        border-radius: 24px;
+        padding: 32px 36px;
+        box-shadow: var(--shadow);
+        margin-bottom: 24px;
+      }
+
+      .hero h1 {
+        margin: 0 0 10px;
+        font-size: 34px;
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 980px;
+        color: rgba(255, 255, 255, 0.84);
+        font-size: 16px;
+        line-height: 1.55;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 20px;
+        margin-bottom: 24px;
+      }
+
+      .card {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        padding: 24px;
+      }
+
+      .card h2 {
+        margin: 0 0 14px;
+        font-size: 20px;
+        letter-spacing: -0.01em;
+      }
+
+      .card p,
+      .card li {
+        color: var(--muted);
+        line-height: 1.55;
+        font-size: 14px;
+      }
+
+      .card ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      .badge.high {
+        background: var(--high-soft);
+        color: var(--high);
+      }
+
+      .badge.mid {
+        background: var(--warn-soft);
+        color: var(--warn);
+      }
+
+      .badge.ok {
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+
+      .note {
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-left: 4px solid var(--warn);
+        background: var(--warn-soft);
+        border-radius: 10px;
+        color: #6a4b1a;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--paper);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--line);
+      }
+
+      thead th {
+        background: #ebf2f7;
+        color: #223142;
+        text-align: left;
+        font-size: 13px;
+        letter-spacing: 0.02em;
+        padding: 14px 12px;
+        border-bottom: 1px solid var(--line-strong);
+      }
+
+      tbody td {
+        vertical-align: top;
+        padding: 13px 12px;
+        border-bottom: 1px solid var(--line);
+        border-right: 1px solid var(--line);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      tbody tr:last-child td {
+        border-bottom: 0;
+      }
+
+      tbody td:last-child,
+      thead th:last-child {
+        border-right: 0;
+      }
+
+      .cat {
+        background: #f9fbfc;
+        font-weight: 700;
+        color: #243344;
+        min-width: 120px;
+      }
+
+      .status {
+        font-weight: 600;
+        color: #243344;
+      }
+
+      .foot {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 24px;
+      }
+
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 12px;
+        color: #334155;
+      }
+
+      @media (max-width: 1100px) {
+        .grid,
+        .foot {
+          grid-template-columns: 1fr;
+        }
+        .wrap {
+          padding: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <section class="hero">
+        <h1>Plan Maestro de Evolución Pro</h1>
+        <p>
+          Documento de arquitectura y roadmap para convertir <strong>codigo_kanban</strong> en una capa CRM/Kanban avanzada sobre Chatwoot. El análisis refleja el estado real del repositorio: backend compilado disponible, frontend solo como build empaquetado, con puntos de inserción inferidos desde el router y los módulos presentes.
+        </p>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <h2>Inserciones Inmediatas</h2>
+          <ul>
+            <li><strong>Vista expandida de card:</strong> el mejor punto es la ruta <span class="mono">/conversation/:id</span>, ya existente en el bundle del frontend. La estrategia correcta es extraer esa experiencia a un modal o side-panel reusable invocado desde el board principal en <span class="mono">/</span>.</li>
+            <li><strong>Dashboard live:</strong> el mejor punto de partida es la ruta <span class="mono">/projects-reports</span>, que ya funciona como entrada analítica y reduce costo de adopción. Si se busca separación de dominio, conviene clonarla a una nueva ruta comercial tipo <span class="mono">/kanban-reports</span>.</li>
+            <li><strong>Lead scoring con IA:</strong> debe estructurarse sobre <span class="mono">AICredentials</span>, <span class="mono">AIService</span>, los datos de conversación de Chatwoot y la entidad <span class="mono">Card</span>. La pieza faltante es el dominio de scoring, no la infraestructura base.</li>
+          </ul>
+          <div class="note">
+            Restricción operativa: el source del frontend no está presente en <span class="mono">codigo_frontend</span>; solo existe el build servido por Nginx. El plan asume recuperación del source original o recreación controlada del frontend a partir del contrato backend.
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>Arquitectura Recomendada para Lead Scoring IA</h2>
+          <ul>
+            <li>Extender <span class="mono">Card</span> con <span class="mono">leadScore</span>, <span class="mono">leadTemperature</span>, <span class="mono">lastScoredAt</span>, <span class="mono">scoreBreakdown</span> y <span class="mono">aiSummary</span>.</li>
+            <li>Crear <span class="mono">LeadScoreConfig</span> por account/funnel con provider, modelo, thresholds, pesos y prompts.</li>
+            <li>Crear <span class="mono">LeadScoreRun</span> para auditoría, debugging y explainability.</li>
+            <li>Implementar <span class="mono">services/leadScoringService</span> y <span class="mono">routes/lead-scoring</span>.</li>
+            <li>Disparadores: alta de conversación, cambio de stage, cambios en custom fields, nuevo mensaje relevante y recálculo manual.</li>
+            <li>Entrega de salida: score 0-100, temperatura, razones, acciones sugeridas y campos a completar.</li>
+          </ul>
+          <p>
+            <span class="badge high">ALTO</span>
+            <span class="badge ok">Base técnica existente</span>
+            <span class="badge mid">Requiere nuevo dominio Prisma</span>
+          </p>
+        </article>
+      </section>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Categoría</th>
+            <th>Funcionalidad</th>
+            <th>Estado actual</th>
+            <th>Ubicación sugerida</th>
+            <th>Plan de implementación</th>
+            <th>Prioridad</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="cat" rowspan="3">Visualización</td>
+            <td>Board Kanban por funnel</td>
+            <td class="status">Parcial/Operativo</td>
+            <td>Frontend <span class="mono">/</span>, backend <span class="mono">routes/funnels.js</span> + <span class="mono">routes/kanban.js</span></td>
+            <td>Consolidar store del board, normalizar dataset y preparar multipresentación de la misma fuente.</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td>Vista Lista / Tabla con filtros</td>
+            <td class="status">Faltante en UI</td>
+            <td>Frontend <span class="mono">/</span> con toggle <span class="mono">board|list</span></td>
+            <td>Crear tabla filtrable por funnel, stage, leadStatus, assignee, inbox y score con virtualización.</td>
+            <td><span class="badge mid">Medio</span></td>
+          </tr>
+          <tr>
+            <td>Vista Timeline (Gantt follow-up)</td>
+            <td class="status">Faltante</td>
+            <td>Frontend en la misma shell del board; backend con histórico por etapa</td>
+            <td>Persistir eventos de stage, tareas y hitos; renderizar línea temporal por card con zoom temporal.</td>
+            <td><span class="badge high">ALTO</span></td>
+          </tr>
+
+          <tr>
+            <td class="cat" rowspan="3">Cards</td>
+            <td>Custom fields</td>
+            <td class="status">Parcial en backend</td>
+            <td>Backend <span class="mono">routes/customFields.js</span>; UI en modal CRM</td>
+            <td>Montar renderer por tipo, edición inline y administración por funnel.</td>
+            <td><span class="badge mid">Medio</span></td>
+          </tr>
+          <tr>
+            <td>Sub-tareas</td>
+            <td class="status">Parcial en backend</td>
+            <td>Backend <span class="mono">conversation-details.js</span>; UI en modal CRM</td>
+            <td>Convertir tareas existentes en checklist visible en card y vista detalle.</td>
+            <td><span class="badge mid">Medio</span></td>
+          </tr>
+          <tr>
+            <td>Notas internas</td>
+            <td class="status">Faltante por card</td>
+            <td>Nuevo módulo de notas + modal CRM</td>
+            <td>Agregar stream de notas auditadas con menciones, archivos y enlaces profundos.</td>
+            <td><span class="badge mid">Medio</span></td>
+          </tr>
+
+          <tr>
+            <td class="cat" rowspan="3">Automaciones</td>
+            <td>Auto-mensaje al mover stage</td>
+            <td class="status">Parcial/Existente en backend</td>
+            <td><span class="mono">Stage.automations</span> en backend, UI de configuración pendiente</td>
+            <td>Exponer builder de automations por stage, preview de templates y test mode.</td>
+            <td><span class="badge mid">Medio</span></td>
+          </tr>
+          <tr>
+            <td>SLA / Alerta por días en stage</td>
+            <td class="status">Faltante</td>
+            <td>Nuevo histórico de etapas + scheduler</td>
+            <td>Guardar entrada/salida de etapa, calcular aging y disparar alertas visuales y webhook.</td>
+            <td><span class="badge mid">Medio</span></td>
+          </tr>
+          <tr>
+            <td>Triggers condicionales (If/Then)</td>
+            <td class="status">Parcial por reutilización de flows</td>
+            <td>Motor de reglas sobre eventos del board</td>
+            <td>Traducir eventos <span class="mono">card.*</span> a un DSL declarativo y reutilizar el motor actual de flows.</td>
+            <td><span class="badge mid">Medio</span></td>
+          </tr>
+
+          <tr>
+            <td class="cat" rowspan="3">Reportes</td>
+            <td>Stats básicas (Won/Lost)</td>
+            <td class="status">Existente</td>
+            <td>Backend <span class="mono">GET /api/kanban/stats</span></td>
+            <td>Reempacar KPIs en widgets reutilizables y preparar refresh en vivo.</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td>Velocidad por stage</td>
+            <td class="status">Faltante</td>
+            <td>Nuevo histórico temporal</td>
+            <td>Medir permanencia por stage, throughput y percentiles por funnel.</td>
+            <td><span class="badge mid">Medio</span></td>
+          </tr>
+          <tr>
+            <td>Dashboard Live (Charts animados)</td>
+            <td class="status">Faltante como módulo comercial</td>
+            <td>Frontend <span class="mono">/projects-reports</span> o nueva ruta <span class="mono">/kanban-reports</span></td>
+            <td>Construir dashboard con KPIs, funnel, aging, velocity y refresh por Socket.IO.</td>
+            <td><span class="badge high">ALTO</span></td>
+          </tr>
+
+          <tr>
+            <td class="cat" rowspan="2">Colaboración</td>
+            <td>Chat interno y @Menciones</td>
+            <td class="status">Parcial</td>
+            <td>Ruta <span class="mono">/chats</span> + modal CRM</td>
+            <td>Agregar parser de menciones, notificaciones y contexto de card/conversation.</td>
+            <td><span class="badge mid">Medio</span></td>
+          </tr>
+          <tr>
+            <td>Actividad en tiempo real</td>
+            <td class="status">Parcial</td>
+            <td>Socket.IO ya presente en backend</td>
+            <td>Emitir feed unificado de card, tarea, nota, score y cambios de funnel.</td>
+            <td><span class="badge mid">Medio</span></td>
+          </tr>
+
+          <tr>
+            <td class="cat" rowspan="3">IA</td>
+            <td>AI Credentials</td>
+            <td class="status">Existente en backend</td>
+            <td><span class="mono">routes/ai-credentials.js</span> + panel admin</td>
+            <td>Publicar UI operativa con test de conexión y selección de provider/model.</td>
+            <td><span class="badge mid">Medio</span></td>
+          </tr>
+          <tr>
+            <td>Resumen de conversa / Auto-fill</td>
+            <td class="status">Faltante</td>
+            <td>Modal CRM + <span class="mono">conversation-details</span> + AIService</td>
+            <td>Resumir conversaciones, sugerir siguiente acción y rellenar campos custom con confirmación humana.</td>
+            <td><span class="badge mid">Medio</span></td>
+          </tr>
+          <tr>
+            <td>Lead Scoring con IA</td>
+            <td class="status">Faltante con base técnica lista</td>
+            <td>Nuevo dominio <span class="mono">lead scoring</span> sobre <span class="mono">Card</span>, <span class="mono">AICredentials</span> y <span class="mono">AIService</span></td>
+            <td>Configurar scoring por funnel, persistir score y justificarlo con trazabilidad por ejecución.</td>
+            <td><span class="badge high">ALTO</span></td>
+          </tr>
+
+          <tr>
+            <td class="cat" rowspan="3">UX / UI</td>
+            <td>Drag &amp; Drop entre columnas</td>
+            <td class="status">Básico</td>
+            <td>Board principal</td>
+            <td>Mejorar accesibilidad, ghost state, scroll automático y sincronización optimista.</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td>Quick actions (Hover)</td>
+            <td class="status">Faltante</td>
+            <td>Cards del board y vista lista</td>
+            <td>Exponer acciones rápidas: abrir modal, marcar won/lost, crear tarea, agendar y puntuar.</td>
+            <td><span class="badge mid">Medio</span></td>
+          </tr>
+          <tr>
+            <td>Vista expandida (Modal CRM)</td>
+            <td class="status">Faltante como experiencia integrada</td>
+            <td>Reutilizar la ruta <span class="mono">/conversation/:id</span> dentro de un modal invocado desde <span class="mono">/</span></td>
+            <td>Construir <span class="mono">CardCRMModal</span> con tabs de resumen, timeline, tareas, notas, custom fields y score.</td>
+            <td><span class="badge high">ALTO</span></td>
+          </tr>
+
+          <tr>
+            <td class="cat" rowspan="2">Integraciones</td>
+            <td>Webhook outbound / API REST</td>
+            <td class="status">Parcial/Existente</td>
+            <td>Ruta <span class="mono">/webhook-configs</span> + <span class="mono">public-api.js</span></td>
+            <td>Ampliar eventos, replay, firma, observabilidad y documentación OpenAPI.</td>
+            <td><span class="badge mid">Medio</span></td>
+          </tr>
+          <tr>
+            <td>Importar CSV / Leads masivo</td>
+            <td class="status">Faltante</td>
+            <td>Nuevo módulo de importación batch</td>
+            <td>Crear pipeline CSV con mapping a custom fields, deduplicación de contactos y creación masiva de cards.</td>
+            <td><span class="badge mid">Medio</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <section class="foot">
+        <article class="card">
+          <h2>Fases Recomendadas</h2>
+          <ul>
+            <li><strong>Fase 1:</strong> Vista expandida de card, checklist, custom fields y quick actions.</li>
+            <li><strong>Fase 2:</strong> Dashboard live, métricas por funnel y base de stage aging.</li>
+            <li><strong>Fase 3:</strong> Lead scoring IA, resumen de conversación y auto-fill.</li>
+            <li><strong>Fase 4:</strong> SLA, triggers condicionales y hardening de integraciones.</li>
+            <li><strong>Fase 5:</strong> CSV import, timeline completa y optimización analítica.</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h2>Dependencias Técnicas</h2>
+          <ul>
+            <li>Recuperar o recrear el source del frontend para evitar trabajar sobre el bundle compilado.</li>
+            <li>Agregar migraciones Prisma para scoring, notas y eventos temporales.</li>
+            <li>Formalizar contratos de API para board, dashboard y modal CRM.</li>
+            <li>Definir una política de prompts, modelos y costos por funnel para IA.</li>
+            <li>Introducir pruebas de integración sobre Kanban, scoring y automations.</li>
+          </ul>
+        </article>
+      </section>
+    </div>
+  </body>
+</html>
