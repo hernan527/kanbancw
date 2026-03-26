@@ -464,35 +464,35 @@ router.patch('/:id/move', async (req, res) => {
             if (!success)
                 return res.status(500).json({ error: 'Failed to update conversation status' });
             await database_1.default.card.deleteMany({ where: { conversationId, accountId } });
-            // Auto-message
+            // Resolve auto-message variables and return for confirmation instead of auto-sending
+            let pendingMessage = null;
             if (finalStage.automations) {
                 try {
                     const auto = JSON.parse(finalStage.automations);
                     if (auto.autoMessage?.enabled && auto.autoMessage?.text) {
-                        const msgText = auto.autoMessage.text
+                        pendingMessage = auto.autoMessage.text
                             .replace(/\{name\}/g, webhookBase.contact?.name ?? '')
                             .replace(/\{stage\}/g, finalStage.name ?? '');
-                        await chatwoot_1.default.sendMessage(accountId, conversationId, msgText, jwtArg, tokenArg);
                     }
                 }
                 catch { /* ignore */ }
             }
-            return res.json({ success: true, conversationId, newStatus: finalStage.chatwootStatus, transferredFrom });
+            return res.json({ success: true, conversationId, newStatus: finalStage.chatwootStatus, transferredFrom, pendingMessage });
         }
         await database_1.default.card.upsert({
             where: { conversationId_accountId: { conversationId, accountId } },
             create: { conversationId, accountId, stageId: finalStage.id, order: 0, transferredFrom: transferredFrom ? JSON.stringify(transferredFrom) : null },
             update: { stageId: finalStage.id, updatedAt: new Date(), transferredFrom: transferredFrom ? JSON.stringify(transferredFrom) : undefined }
         });
-        // Auto-message
+        // Resolve auto-message variables and return for confirmation instead of auto-sending
+        let pendingMessage = null;
         if (finalStage.automations) {
             try {
                 const auto = JSON.parse(finalStage.automations);
                 if (auto.autoMessage?.enabled && auto.autoMessage?.text) {
-                    const msgText = auto.autoMessage.text
+                    pendingMessage = auto.autoMessage.text
                         .replace(/\{name\}/g, webhookBase.contact?.name ?? '')
                         .replace(/\{stage\}/g, finalStage.name ?? '');
-                    await chatwoot_1.default.sendMessage(accountId, conversationId, msgText, jwtArg, tokenArg);
                 }
             }
             catch { /* ignore */ }
@@ -504,7 +504,7 @@ router.patch('/:id/move', async (req, res) => {
             from: webhookBase.fromColumn ?? { type: 'status', status: webhookBase.conversation.status },
             to: { type: 'stage', stageId: finalStage.id, stageName: finalStage.name, funnelId: finalStage.funnel.id, funnelName: finalStage.funnel.name },
         }).catch(() => { });
-        res.json({ success: true, conversationId, stageId: finalStage.id, stageName: finalStage.name, transferredFrom });
+        res.json({ success: true, conversationId, stageId: finalStage.id, stageName: finalStage.name, transferredFrom, pendingMessage });
     }
     catch (error) {
         logger_1.default.error('Error moving card', { conversationId, error });
@@ -674,6 +674,29 @@ router.patch('/:id/lead-status', async (req, res) => {
     catch (error) {
         logger_1.default.error('Error updating lead status', { conversationId, error });
         res.status(500).json({ error: 'Failed to update lead status' });
+    }
+});
+// POST /api/kanban/:id/send-message - Envía un mensaje confirmado por el usuario
+router.post('/:id/send-message', async (req, res) => {
+    const authReq = req;
+    const conversationId = parseInt(req.params.id);
+    const { message } = req.body;
+    const accountId = authReq.user.account_id;
+    const jwt = authReq.jwt;
+    const apiToken = authReq.apiToken;
+    if (!message?.trim())
+        return res.status(400).json({ error: 'Message is required' });
+    try {
+        const jwtArg = jwt['access-token'] ? jwt : undefined;
+        const tokenArg = jwt['access-token'] ? undefined : apiToken;
+        const sent = await chatwoot_1.default.sendMessage(accountId, conversationId, message.trim(), jwtArg, tokenArg);
+        if (!sent)
+            return res.status(500).json({ error: 'Failed to send message' });
+        res.json({ success: true });
+    }
+    catch (error) {
+        logger_1.default.error('Error sending message', { conversationId, error });
+        res.status(500).json({ error: 'Failed to send message' });
     }
 });
 exports.default = router;
