@@ -39,6 +39,8 @@ services:
       LOG_LEVEL: info
       DATABASE_URL: postgresql://postgres:Saludok2026@postgres-kanban:5432/kanbancw?schema=public
       UPLOAD_DIR: /app/uploads
+      REDIS_HOST: "172.18.0.1"
+      REDIS_PORT: "6379"
       <<: *kanbancw-config
     volumes:
       - kanbancw-uploads:/app/uploads
