@@ -66,6 +66,7 @@ model Card {
   customName     String?  // Nome customizado do card (editável pelo usuário)
   ai_score       Int?     // Score gerado por IA (1-100)
   ai_analysis    String?  @db.Text // Análise comercial gerada pela IA
+  notes          String?  @db.Text  // Notas internas do card (texto livre)
   transferredFrom String? @db.Text  // JSON: {"funnelId": 1, "funnelName": "...", "stageId": 2, "stageName": "...", "transferredAt": "..."}
   leadStatus     String   @default("open")  // Status do lead: "open", "won", "lost"
   closeReason    String?  // Motivo do fechamento (ganho ou perda)

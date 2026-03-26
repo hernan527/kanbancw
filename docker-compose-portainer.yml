@@ -32,7 +32,7 @@ services:
           - node.role == manager
 
   backend:
-    image: kanbancw-backend:2.0.0
+    image: kanbancw-backend:2.1.0
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -68,7 +68,7 @@ services:
         - "traefik.docker.network=network_public"
 
   frontend:
-    image: saludok-frontend:1.0
+    image: saludok-frontend:1.1
     environment:
       KANBANCW_DOMAIN: kanban.saludok.com.ar
     networks:

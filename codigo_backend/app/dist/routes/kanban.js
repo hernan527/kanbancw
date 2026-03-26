@@ -188,7 +188,7 @@ router.get('/', async (req, res) => {
         });
         const allCards = await database_1.default.card.findMany({
             where: { accountId },
-            select: { conversationId: true, customName: true, stageId: true, leadStatus: true }
+            select: { conversationId: true, customName: true, stageId: true, leadStatus: true, notes: true }
         });
         const conversationIds = filteredConversations.map((c) => c.id);
         const cardItems = await database_1.default.cardItem.findMany({
@@ -198,6 +198,7 @@ router.get('/', async (req, res) => {
         const localCardMap = new Map();
         const customNameMap = new Map();
         const leadStatusMap = new Map();
+        const notesMap = new Map();
         const itemsMap = new Map();
         const totalValueMap = new Map();
         for (const c of localCards) {
@@ -208,6 +209,7 @@ router.get('/', async (req, res) => {
             if (c.conversationId !== null) {
                 customNameMap.set(c.conversationId, c.customName);
                 leadStatusMap.set(c.conversationId, c.leadStatus || 'open');
+                notesMap.set(c.conversationId, c.notes || null);
             }
         }
         for (const item of cardItems) {
@@ -238,6 +240,7 @@ router.get('/', async (req, res) => {
                 leadStatus: leadStatusMap.get(conv.id),
                 items: itemsMap.get(conv.id) || [],
                 totalValue: totalValueMap.get(conv.id) || 0,
+                notes: notesMap.get(conv.id) || null,
                 chatwootUrl: `${CHATWOOT_BASE_URL}/app/accounts/${accountId}/conversations/${conv.id}`,
             };
             const localStageId = localCardMap.get(conv.id);
@@ -345,6 +348,7 @@ router.get('/funnel/:funnelId', async (req, res) => {
                         isStandalone: true,
                         cardId: card.id,
                         items: [],
+                        notes: card.notes || null,
                         totalValue: 0
                     });
                     continue;
@@ -367,6 +371,7 @@ router.get('/funnel/:funnelId', async (req, res) => {
                         transferredFrom,
                         items: itemsMap.get(conv.id) || [],
                         totalValue: totalValueMap.get(conv.id) || 0,
+                        notes: card.notes || null,
                         chatwootUrl: `${CHATWOOT_BASE_URL}/app/accounts/${accountId}/conversations/${conv.id}`,
                     });
                 }
@@ -386,6 +391,7 @@ router.get('/funnel/:funnelId', async (req, res) => {
                         leadStatus: card.leadStatus,
                         transferredFrom,
                         items: [],
+                        notes: card.notes || null,
                         totalValue: 0
                     });
                 }
@@ -697,6 +703,31 @@ router.post('/:id/send-message', async (req, res) => {
     catch (error) {
         logger_1.default.error('Error sending message', { conversationId, error });
         res.status(500).json({ error: 'Failed to send message' });
+    }
+});
+// PATCH /api/kanban/:id/notes
+router.patch('/:id/notes', async (req, res) => {
+    const authReq = req;
+    const conversationId = parseInt(req.params.id);
+    const { notes } = req.body;
+    const accountId = authReq.user.account_id;
+    if (isNaN(conversationId) || conversationId <= 0)
+        return res.status(400).json({ error: 'Invalid conversation ID' });
+    if (notes === undefined)
+        return res.status(400).json({ error: 'notes is required' });
+    try {
+        const card = await database_1.default.card.findFirst({ where: { conversationId, accountId } });
+        if (!card)
+            return res.status(404).json({ error: 'Card not found. Move card to a funnel stage first.' });
+        const updated = await database_1.default.card.update({
+            where: { id: card.id },
+            data: { notes: notes.trim() || null }
+        });
+        res.json({ success: true, notes: updated.notes });
+    }
+    catch (error) {
+        logger_1.default.error('Error updating notes', { conversationId, error });
+        res.status(500).json({ error: 'Failed to update notes' });
     }
 });
 exports.default = router;
