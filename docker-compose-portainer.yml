@@ -68,7 +68,7 @@ services:
         - "traefik.docker.network=network_public"
 
   frontend:
-    image: saludok-frontend:1.1
+    image: saludok-frontend:1.2
     environment:
       KANBANCW_DOMAIN: kanban.saludok.com.ar
     networks:
