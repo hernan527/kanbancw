@@ -626,7 +626,7 @@ router.delete('/:id/scheduled-messages/:msgId', async (req, res) => {
 // POST /api/forward-message - Encaminha mensagem para nova conversa em outra inbox
 router.post('/forward-message', async (req, res) => {
     const authReq = req;
-    const { inboxId, contactIdentifier, message, attachments } = req.body;
+    const { inboxId, contactIdentifier, message, attachments, name, phone_number, email, custom_attributes } = req.body;
     if (!inboxId) {
         return res.status(400).json({ error: 'Inbox é obrigatória' });
     }
@@ -658,13 +658,16 @@ router.post('/forward-message', async (req, res) => {
                 inbox_id: parseInt(inboxId)
             };
             if (isEmail) {
-                contactData.email = contactIdentifier.trim();
-                contactData.name = contactIdentifier.split('@')[0];
+                contactData.email = email?.trim() || contactIdentifier.trim();
+                contactData.name = name?.trim() || contactIdentifier.split('@')[0];
             }
             else {
-                contactData.phone_number = contactIdentifier.trim();
-                contactData.name = contactIdentifier.trim();
+                contactData.phone_number = phone_number?.trim() || contactIdentifier.trim();
+                contactData.name = name?.trim() || contactIdentifier.trim();
             }
+            if (email?.trim() && !isEmail) contactData.email = email.trim();
+            if (phone_number?.trim() && isEmail) contactData.phone_number = phone_number.trim();
+            if (custom_attributes && typeof custom_attributes === 'object') contactData.custom_attributes = custom_attributes;
             contact = await chatwoot_1.default.createContact(accountId, contactData, jwt, apiToken);
             if (!contact) {
                 return res.status(500).json({ error: 'Falha ao criar contato' });

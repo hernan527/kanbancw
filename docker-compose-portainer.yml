@@ -6,6 +6,8 @@ x-kanbancw-config: &kanbancw-config
   CORS_ORIGIN: https://kanban.saludok.com.ar,https://multichat.saludok.com.ar
   EVOLUTION_API_URL: https://evoapi.saludok.com.ar
   EVOLUTION_API_KEY: b6bbb9dfbba379e37eb1e7afd26c9697
+  WAHA_API_URL: https://waha.saludok.com.ar
+  WAHA_API_KEY: de8b96023090461a93dda1742dca2afd
 
 # ============================================
 
@@ -32,12 +34,13 @@ services:
           - node.role == manager
 
   backend:
-    image: kanbancw-backend:2.1.0
+    image: kanbancw-backend:2.1.1
     environment:
       NODE_ENV: production
       PORT: 3000
       LOG_LEVEL: info
       DATABASE_URL: postgresql://postgres:Saludok2026@postgres-kanban:5432/kanbancw?schema=public
+      CHATWOOT_DATABASE_URL: postgresql://postgres:Saludok2026@10.0.1.97:5432/chatwoot
       UPLOAD_DIR: /app/uploads
       REDIS_HOST: "172.18.0.1"
       REDIS_PORT: "6379"
@@ -68,7 +71,7 @@ services:
         - "traefik.docker.network=network_public"
 
   frontend:
-    image: saludok-frontend:1.2
+    image: saludok-frontend:1.0
     environment:
       KANBANCW_DOMAIN: kanban.saludok.com.ar
     networks:

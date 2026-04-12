@@ -142,25 +142,65 @@ router.get('/kanban/boards/:boardId/cards', async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - conversationId
  *               - stageId
  *             properties:
  *               conversationId:
  *                 type: integer
+ *                 description: ID da conversa (obrigatório se contactId não for informado)
+ *               contactId:
+ *                 type: integer
+ *                 description: ID do contato (usa a conversa mais recente; obrigatório se conversationId não for informado)
  *               stageId:
  *                 type: integer
  */
 router.post('/kanban/cards', async (req, res) => {
     const apiReq = req;
     const accountId = apiReq.apiTokenData.accountId;
-    const conversationId = parseInt(String(req.body.conversationId), 10);
+    let conversationId = req.body.conversationId ? parseInt(String(req.body.conversationId), 10) : NaN;
     const stageId = parseInt(String(req.body.stageId), 10);
-    if (!req.body.conversationId || !req.body.stageId) {
-        res.status(400).json({ error: 'conversationId and stageId are required' });
+    const contactId = req.body.contactId ? parseInt(String(req.body.contactId), 10) : NaN;
+    if (!req.body.conversationId && !req.body.contactId) {
+        res.status(400).json({ error: 'conversationId or contactId is required, along with stageId' });
         return;
     }
-    if (isNaN(conversationId) || isNaN(stageId)) {
-        res.status(400).json({ error: 'conversationId and stageId must be integers' });
+    if (!req.body.stageId) {
+        res.status(400).json({ error: 'stageId is required' });
+        return;
+    }
+    if (isNaN(stageId)) {
+        res.status(400).json({ error: 'stageId must be an integer' });
+        return;
+    }
+    // Resolve contactId → conversationId (conversa mais recente)
+    if (isNaN(conversationId) && !isNaN(contactId)) {
+        try {
+            let conversations = [];
+            try {
+                conversations = await chatwootDatabase_1.default.getContactConversations(accountId, contactId);
+            }
+            catch {
+                const userId = apiReq.apiTokenData.userId;
+                const userApiToken = await chatwootDatabase_1.default.getUserAccessToken(userId);
+                if (userApiToken) {
+                    const result = await chatwoot_1.default.getContactConversations(accountId, contactId, userApiToken);
+                    conversations = (result || []).map((c) => ({ id: c.id }));
+                }
+            }
+            if (!conversations || conversations.length === 0) {
+                res.status(404).json({ error: 'No conversations found for this contact' });
+                return;
+            }
+            conversationId = conversations[0].id;
+        }
+        catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            logger_1.default.error('API: Failed to resolve contactId to conversationId', { contactId, accountId, error: errorMessage });
+            res.status(500).json({ error: 'Failed to resolve contact conversations' });
+            return;
+        }
+    }
+    if (isNaN(conversationId) || conversationId <= 0) {
+        res.status(400).json({ error: 'conversationId must be a valid integer' });
         return;
     }
     try {
@@ -215,6 +255,127 @@ router.post('/kanban/cards', async (req, res) => {
             error: errorMessage,
         });
         res.status(500).json({ error: 'Failed to create card' });
+    }
+});
+/**
+ * @swagger
+ * /v1/kanban/cards:
+ *   put:
+ *     summary: Move um card para outro stage por contactId ou conversationId (body)
+ *     tags: [Kanban]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - stageId
+ *             properties:
+ *               conversationId:
+ *                 type: integer
+ *               contactId:
+ *                 type: integer
+ *               stageId:
+ *                 type: integer
+ */
+router.put('/kanban/cards', async (req, res) => {
+    const apiReq = req;
+    const accountId = apiReq.apiTokenData.accountId;
+    let conversationId = req.body.conversationId ? parseInt(String(req.body.conversationId), 10) : NaN;
+    const stageId = parseInt(String(req.body.stageId), 10);
+    const contactId = req.body.contactId ? parseInt(String(req.body.contactId), 10) : NaN;
+    if (!req.body.conversationId && !req.body.contactId) {
+        res.status(400).json({ error: 'conversationId or contactId is required' });
+        return;
+    }
+    if (!req.body.stageId || isNaN(stageId)) {
+        res.status(400).json({ error: 'stageId is required and must be an integer' });
+        return;
+    }
+    // Resolve contactId → card (busca entre TODAS las conversaciones del contacto la que tiene card)
+    let card = null;
+    if (isNaN(conversationId) && !isNaN(contactId)) {
+        try {
+            let conversations = [];
+            try {
+                conversations = await chatwootDatabase_1.default.getContactConversations(accountId, contactId);
+            }
+            catch {
+                const userId = apiReq.apiTokenData.userId;
+                const userApiToken = await chatwootDatabase_1.default.getUserAccessToken(userId);
+                if (userApiToken) {
+                    const result = await chatwoot_1.default.getContactConversations(accountId, contactId, userApiToken);
+                    conversations = (result || []).map((c) => ({ id: c.id }));
+                }
+            }
+            if (!conversations || conversations.length === 0) {
+                res.status(404).json({ error: 'No conversations found for this contact' });
+                return;
+            }
+            // Buscar cuál de las conversaciones tiene un card en el kanban
+            const convIds = conversations.map((c) => c.id);
+            card = await database_1.default.card.findFirst({
+                where: { accountId, conversationId: { in: convIds } },
+                orderBy: { updatedAt: 'desc' },
+            });
+            if (!card) {
+                // No hay card para ninguna conversación del contacto — continuar sin error
+                res.json({ success: true, found: false, message: 'No kanban card found for this contact' });
+                return;
+            }
+            conversationId = card.conversationId;
+        }
+        catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            logger_1.default.error('API: Failed to resolve contactId to card', { contactId, accountId, error: errorMessage });
+            res.status(500).json({ error: 'Failed to resolve contact card' });
+            return;
+        }
+    }
+    if (isNaN(conversationId) || conversationId <= 0) {
+        res.status(400).json({ error: 'conversationId must be a valid integer' });
+        return;
+    }
+    try {
+        if (!card) {
+            card = await database_1.default.card.findUnique({
+                where: { conversationId_accountId: { conversationId, accountId } },
+            });
+        }
+        const targetStage = await database_1.default.stage.findFirst({
+            where: { id: stageId },
+            include: { funnel: true },
+        });
+        if (!targetStage || targetStage.funnel.accountId !== accountId) {
+            res.status(404).json({ error: 'Target stage not found' });
+            return;
+        }
+        const cardsCount = await database_1.default.card.count({ where: { stageId } });
+        let result;
+        let created = false;
+        if (card) {
+            result = await database_1.default.card.update({
+                where: { id: card.id },
+                data: { stageId, order: cardsCount },
+            });
+            logger_1.default.info('API: Card moved via body', { cardId: card.id, conversationId, fromStageId: card.stageId, toStageId: stageId, accountId });
+        }
+        else {
+            result = await database_1.default.card.create({
+                data: { conversationId, stageId, accountId, order: cardsCount },
+            });
+            created = true;
+            logger_1.default.info('API: Card created via upsert', { cardId: result.id, conversationId, stageId, accountId });
+        }
+        res.json({ success: true, created, data: result });
+    }
+    catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger_1.default.error('API: Failed to move card via body', { conversationId, stageId, accountId, error: errorMessage });
+        res.status(500).json({ error: 'Failed to move card' });
     }
 });
 /**

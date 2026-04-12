@@ -53,17 +53,7 @@ async function createWahaSession(accountId, instanceName) {
         const response = await wahaClient.post('/api/sessions', {
             name: sessionName,
             start: true,
-            config: {
-                metadata: {},
-                proxy: null,
-                debug: false,
-                noweb: {
-                    store: {
-                        enabled: true,
-                        fullSync: false,
-                    },
-                },
-            },
+            config: {},
         });
         logger_1.default.info('Waha session created', {
             sessionName,

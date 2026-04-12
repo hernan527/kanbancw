@@ -170,7 +170,7 @@ router.get('/', async (req, res) => {
         if (!systemFunnel) {
             return res.status(404).json({
                 error: 'Nenhum funil ativo',
-                message: 'Ative um funil em Gerenciar Funis para usar esta visualização'
+                message: 'Active un embudo en Gestionar Embudos para usar esta vista'
             });
         }
         const [conversations, inboxes] = await Promise.all([

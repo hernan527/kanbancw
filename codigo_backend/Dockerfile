@@ -1,15 +1,21 @@
 FROM node:20-alpine
 
+RUN apk add --no-cache openssl
+
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci --only=production
+COPY app/package*.json ./
+RUN npm install --omit=dev
 
-COPY prisma ./prisma
+COPY app/prisma ./prisma
 RUN npx prisma generate
 
-COPY . .
+COPY app/dist ./dist
+COPY app/docker-entrypoint.sh ./docker-entrypoint.sh
+COPY app/chatwoot-dashboard-script.template.html ./chatwoot-dashboard-script.template.html
 
-EXPOSE 3001
+RUN chmod +x docker-entrypoint.sh
 
-CMD ["sh", "-c", "npx prisma migrate deploy && node server.js"]
+EXPOSE 3000
+
+CMD ["sh", "docker-entrypoint.sh"]

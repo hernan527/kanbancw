@@ -914,7 +914,7 @@
           return;
         }
 
-        // Procura o botão "Adicionar função personalizada" ou "Add custom role"
+        // Procura o botão "Agregar função personalizada" ou "Add custom role"
         var buttons = document.querySelectorAll('button');
         var addRoleButton = null;
 
@@ -1576,8 +1576,8 @@
     // VIEW: Menu Principal
     if (widgetModalState.view === 'main') {
       html += '<div class="menu-option" onclick="window.showFunnelsView()"><div class="menu-option-icon">📊</div><div class="menu-option-content"><div class="menu-option-title">Associar ao Funil</div><div class="menu-option-desc">Vincular conversa a uma etapa do kanban</div></div></div>';
-      html += '<div class="menu-option" onclick="window.showSchedulingView()"><div class="menu-option-icon">⏰</div><div class="menu-option-content"><div class="menu-option-title">Agendar Mensagens</div><div class="menu-option-desc">Programar envio de mensagens</div></div></div>';
-      html += '<div class="menu-option" onclick="window.showSequencesView()"><div class="menu-option-icon">🔄</div><div class="menu-option-content"><div class="menu-option-title">Flow Sequência</div><div class="menu-option-desc">Adicionar contato a uma sequência automática</div></div></div>';
+      html += '<div class="menu-option" onclick="window.showSchedulingView()"><div class="menu-option-icon">⏰</div><div class="menu-option-content"><div class="menu-option-title">Agendar Mensajes</div><div class="menu-option-desc">Programar envio de mensagens</div></div></div>';
+      html += '<div class="menu-option" onclick="window.showSequencesView()"><div class="menu-option-icon">🔄</div><div class="menu-option-content"><div class="menu-option-title">Flow Sequência</div><div class="menu-option-desc">Agregar contato a uma sequência automática</div></div></div>';
     }
 
     // VIEW: Lista de Funis
@@ -1610,7 +1610,7 @@
       html += '</div>';
     }
 
-    // VIEW: Agendamento de Mensagens
+    // VIEW: Agendamento de Mensajes
     else if (widgetModalState.view === 'scheduling') {
       html += '<button class="back-btn" onclick="window.showMainView()">← Voltar</button>';
       html += '<p class="section-title">⏰ Nova Mensagem Agendada</p>';
@@ -1622,7 +1622,7 @@
       // Lista de mensagens agendadas
       if (widgetModalState.scheduledMessages.length > 0) {
         html += '<hr class="section-divider">';
-        html += '<p class="section-title">📋 Mensagens Agendadas</p>';
+        html += '<p class="section-title">📋 Mensajes Programadas</p>';
         widgetModalState.scheduledMessages.forEach(function(msg) {
           html += '<div class="scheduled-item">';
           html += '<div class="scheduled-header">';
@@ -1673,7 +1673,7 @@
         } catch (e) {}
       }
 
-      html += '<div class="form-group"><label class="form-label">' + (hasAttachment ? 'Substituir Anexo' : 'Adicionar Anexo') + ' (opcional)</label><input type="file" class="form-input" id="edit-attachment" accept="image/*,application/pdf,.doc,.docx"></div>';
+      html += '<div class="form-group"><label class="form-label">' + (hasAttachment ? 'Substituir Anexo' : 'Agregar Anexo') + ' (opcional)</label><input type="file" class="form-input" id="edit-attachment" accept="image/*,application/pdf,.doc,.docx"></div>';
       html += '<button class="btn-primary" onclick="window.saveEditedMessage()">Salvar Alterações</button>';
     }
 
@@ -1716,7 +1716,7 @@
             html += '<button class="btn-small btn-danger" onclick="window.cancelSequence(' + execution.id + ')">❌ Cancelar</button>';
             html += '</div>';
           } else if (flow.isActive) {
-            html += '<button class="btn-small btn-primary" onclick="window.addToSequence(' + flow.id + ')">Adicionar à Sequência</button>';
+            html += '<button class="btn-small btn-primary" onclick="window.addToSequence(' + flow.id + ')">Agregar a la Secuencia</button>';
           } else {
             html += '<button class="btn-small" disabled>Flow Inativo</button>';
           }
@@ -1896,7 +1896,7 @@
                 html += '<div class="flow-node-label">' + getNodePreview(node) + '</div>';
                 html += '</div>';
 
-                // Adicionar connector se não for o último
+                // Agregar connector se não for o último
                 if (index < nodes.length - 1) {
                   html += '<div class="flow-connector"></div>';
                 }
@@ -2063,7 +2063,7 @@
     var contactId = conversationData.meta?.sender?.id;
 
     if (!contactId) {
-      alert('Contato não encontrado');
+      alert('Contacto não encontrado');
       return;
     }
 
@@ -2085,7 +2085,7 @@
         throw new Error(error.error || 'Erro ao adicionar à sequência');
       }
 
-      body.innerHTML = '<div class="success-msg">✓ Contato adicionado à sequência com sucesso!</div>';
+      body.innerHTML = '<div class="success-msg">✓ Contacto adicionado à sequência com sucesso!</div>';
       setTimeout(function() {
         widgetModalState.view = 'main';
         renderWidgetModalContent();
